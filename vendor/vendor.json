@@ -33,16 +33,22 @@
 			"revisionTime": "2017-01-01T21:01:28Z"
 		},
 		{
-			"checksumSHA1": "SK1epV582t6zeBtowO7cidLFgRE=",
+			"checksumSHA1": "nX4CoPafpW4JkMKXEBXAbcRSl10=",
+			"path": "github.com/docker/go-plugins-helpers",
+			"revision": "65a562254f786ada2d545466185c59e235b7699e",
+			"revisionTime": "2017-01-02T14:46:06Z"
+		},
+		{
+			"checksumSHA1": "G7NHweddpD10GEcpqmdB/Bq6FZI=",
 			"path": "github.com/docker/go-plugins-helpers/sdk",
-			"revision": "77bfeec724ac5ae33f6a820c7ee6c98301b5a121",
-			"revisionTime": "2016-11-23T20:57:46Z"
+			"revision": "65a562254f786ada2d545466185c59e235b7699e",
+			"revisionTime": "2017-01-02T14:46:06Z"
 		},
 		{
 			"checksumSHA1": "bELvyBvmY5t2P/dCuCLxwTb1I+Q=",
 			"path": "github.com/docker/go-plugins-helpers/volume",
-			"revision": "77bfeec724ac5ae33f6a820c7ee6c98301b5a121",
-			"revisionTime": "2016-11-23T20:57:46Z"
+			"revision": "65a562254f786ada2d545466185c59e235b7699e",
+			"revisionTime": "2017-01-02T14:46:06Z"
 		},
 		{
 			"checksumSHA1": "40vJyUB4ezQSn/NSadsKEOrudMc=",
