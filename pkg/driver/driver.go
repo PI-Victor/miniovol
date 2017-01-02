@@ -1,31 +1,48 @@
 package driver
 
-//
-// import (
-// 	"sync"
-//
-// 	"github.com/docker/go-plugins-helpers/volume"
-// )
+import (
+	"sync"
 
-//
-// const ()
-//
-// type DODriver struct {
-// 	Client string
-// 	sync.Mutex
-// }
-//
-// func newDODriver(c godo.Client) *DODriver {
-// 	return DODriver{
-// 		Client: c,
-// 	}
-// }
-//
-// func (d *DODriver) Create(http.Request) volume.Response       {}
-// func (d *DODriver) List(http.Request) volume.Response         {}
-// func (d *DODriver) Get(http.Request) volume.Response          {}
-// func (d *DODriver) Remove(http.Request) volume.Response       {}
-// func (d *DODriver) Path(http.Request) volume.Response         {}
-// func (d *DODriver) Mount(http.Request) volume.Response        {}
-// func (d *DODriver) Unmount(http.Request) volume.Response      {}
-// func (d *DODriver) Capabilities(http.Request) volume.Response {}
+	"github.com/docker/go-plugins-helpers/volume"
+
+	"github.com/cloudflavor/miniovol/pkg/client"
+)
+
+// MinioDriver is the driver used by docker.
+type MinioDriver struct {
+	*sync.Mutex
+	*client.MinioClient
+}
+
+func NewMinioDriver(c *client.MinioClient) MinioDriver {
+	return MinioDriver{
+		&sync.Mutex{},
+		c,
+	}
+}
+
+func (d MinioDriver) Create(volume.Request) volume.Response {
+
+	return volume.Response{}
+}
+func (d MinioDriver) List(volume.Request) volume.Response {
+	return volume.Response{}
+}
+func (d MinioDriver) Get(volume.Request) volume.Response {
+	return volume.Response{}
+}
+func (d MinioDriver) Remove(volume.Request) volume.Response {
+	return volume.Response{}
+}
+func (d MinioDriver) Path(volume.Request) volume.Response {
+	return volume.Response{}
+}
+func (d MinioDriver) Mount(volume.MountRequest) volume.Response {
+	return volume.Response{}
+}
+func (d MinioDriver) Unmount(volume.UnmountRequest) volume.Response {
+	return volume.Response{}
+}
+func (d MinioDriver) Capabilities(volume.Request) volume.Response {
+	return volume.Response{}
+}
