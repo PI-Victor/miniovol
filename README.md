@@ -1,4 +1,6 @@
-mongo-kit
-----
+#### DOBSD - DigitalOcean Blockstorage for Docker.
 
-A docker plugin used for sharding.
+Blockstorage plugin for Docker 1.12 (experimental) on DigitalOcean.
+
+
+###### Getting started
