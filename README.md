@@ -1,6 +1,5 @@
-#### DOBSD - DigitalOcean Blockstorage for Docker.
+#### miniovol
 
-Blockstorage plugin for Docker 1.12 (experimental) on DigitalOcean.
-
+A Docker plugin (experimental 1.12) for storing data on [Minio](https://minio.io).
 
 ###### Getting started
