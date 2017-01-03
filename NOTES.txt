@@ -1,0 +1,2 @@
+{"version":"1","accessKey":"OKWUYY6OHNKMJB67WPU0","secretKey":"MWShkNCAlhmeDXdL6M3qb8N8lhAjM2ih83+pgjzD"}
+mount -t minfs http://192.168.0.115:9000/docker-volumes /mnt
