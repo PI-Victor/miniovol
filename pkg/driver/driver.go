@@ -22,7 +22,6 @@ func NewMinioDriver(c *client.MinioClient) MinioDriver {
 }
 
 func (d MinioDriver) Create(volume.Request) volume.Response {
-
 	return volume.Response{}
 }
 func (d MinioDriver) List(volume.Request) volume.Response {
