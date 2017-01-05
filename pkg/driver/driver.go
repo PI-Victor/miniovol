@@ -17,6 +17,7 @@ type minioVolume struct {
 	// NOTE: check to see if buckets would really collide if we specify them only
 	// in the driver, instead of attaching them individually to each volume.
 	bucketName string
+	localFS    string
 }
 
 // MinioDriver is the driver used by docker.
@@ -34,25 +35,25 @@ func NewMinioDriver(c *client.MinioClient) MinioDriver {
 	}
 }
 
-func newVolume(name string, mountPoint string) *minioVolume {
+func newVolume(name, mountPoint, bucketname string) *minioVolume {
 	return &minioVolume{
 		name:       name,
 		mountpoint: mountPoint,
 	}
 }
 
-// Create creates a new volume with the appropiate date.
+// Create creates a new volume with the appropiate data.
 func (d MinioDriver) Create(r volume.Request) volume.Response {
 	d.m.Lock()
-
 	defer d.m.Unlock()
+
 	if err := d.createClient(r.Options); err != nil {
 		errMsg := fmt.Sprintf("error creating client: %s", err)
 		return volumeResp("", "", nil, capability, errMsg)
 	}
-	v := minioVolume{}
-	v.bucketName = d.c.BucketName
-	d.volumes[r.Name] = &v
+
+	v := newVolume("", "", d.c.BucketName)
+	d.volumes[r.Name] = v
 
 	return volumeResp("", "", nil, capability, "")
 }
@@ -69,7 +70,7 @@ func (d MinioDriver) Get(r volume.Request) volume.Response {
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
-		volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
+		return volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
 	}
 
 	return volumeResp(v.mountpoint, r.Name, nil, capability, "")
@@ -87,7 +88,7 @@ func (d MinioDriver) Path(r volume.Request) volume.Response {
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
-		volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
+		return volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
 	}
 	return volumeResp(v.mountpoint, "", nil, capability, "")
 }
@@ -98,8 +99,17 @@ func (d MinioDriver) Mount(r volume.MountRequest) volume.Response {
 	return volume.Response{}
 }
 
-// Unmount will unmount a specified
+// Unmount will unmount a specified volume.
 func (d MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
+	d.m.Lock()
+	defer d.m.Unlock()
+
+	v, exists := d.volumes[r.Name]
+	if !exists {
+		return volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
+	}
+
+	cmd := fmt.Sprintf("umount")
 	return volume.Response{}
 }
 
@@ -119,24 +129,24 @@ func (d MinioDriver) unmountVolume(volume *minioVolume) error {
 func (d MinioDriver) createClient(options map[string]string) error {
 	var secure bool
 
-	server, err := checkValidParameter("server", options)
+	server, err := checkParam("server", options)
 	if err != nil {
 		return err
 	}
 
-	accessKey, err := checkValidParameter("accessKey", options)
+	accessKey, err := checkParam("accessKey", options)
 	if err != nil {
 		return err
 	}
 
-	secretKey, err := checkValidParameter("secretKey", options)
+	secretKey, err := checkParam("secretKey", options)
 	if err != nil {
 		return err
 	}
 
 	// TODO: remember to fix this, since the user could pass false and it would
 	// become true.
-	_, err = checkValidParameter("secure", options)
+	_, err = checkParam("secure", options)
 	if err == nil {
 		secure = true
 	}
@@ -148,7 +158,7 @@ func (d MinioDriver) createClient(options map[string]string) error {
 		}
 	}
 
-	bucketName, err := checkValidParameter("bucket", options)
+	bucketName, err := checkParam("bucket", options)
 	if err != nil || bucketName == "" {
 		if err = d.createBucket(bucketName); err != nil {
 			return err

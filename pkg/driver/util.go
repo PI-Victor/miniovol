@@ -71,7 +71,7 @@ func createName(prefix string) string {
 	return fmt.Sprintf("%s%08x", prefix, rand.Uint32())
 }
 
-func checkValidParameter(param string, opts map[string]string) (string, error) {
+func checkParam(param string, opts map[string]string) (string, error) {
 	stringParam, exists := opts[param]
 	if stringParam == "" || !exists {
 		return "", fmt.Errorf("%s option is required", param)
