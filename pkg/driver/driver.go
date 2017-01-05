@@ -2,7 +2,6 @@ package driver
 
 import (
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/docker/go-plugins-helpers/volume"
@@ -15,6 +14,9 @@ var capability volume.Capability
 type minioVolume struct {
 	name       string
 	mountpoint string
+	// NOTE: check to see if buckets would really collide if we specify them only
+	// in the driver, instead of attaching them individually to each volume.
+	bucketName string
 }
 
 // MinioDriver is the driver used by docker.
@@ -44,9 +46,15 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 	d.m.Lock()
 
 	defer d.m.Unlock()
+	if err := d.createClient(r.Options); err != nil {
+		errMsg := fmt.Sprintf("error creating client: %s", err)
+		return volumeResp("", "", nil, capability, errMsg)
+	}
 	v := minioVolume{}
-	log.Print(v)
-	return volume.Response{}
+	v.bucketName = d.c.BucketName
+	d.volumes[r.Name] = &v
+
+	return volumeResp("", "", nil, capability, "")
 }
 
 // List lists all currently available volumes.
@@ -98,6 +106,7 @@ func (d MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 	return volume.Response{}
 }
 
+// Capabilities
 func (d MinioDriver) Capabilities(r volume.Request) volume.Response {
 	return volume.Response{}
 }
@@ -110,26 +119,27 @@ func (d MinioDriver) unmountVolume(volume *minioVolume) error {
 	return nil
 }
 
-func (d MinioDriver) createClient(r volume.Request) error {
+func (d MinioDriver) createClient(options map[string]string) error {
 	var secure bool
-	server, err := checkValidParameter("server", r.Options)
+
+	server, err := checkValidParameter("server", options)
 	if err != nil {
 		return err
 	}
 
-	accessKey, err := checkValidParameter("accessKey", r.Options)
+	accessKey, err := checkValidParameter("accessKey", options)
 	if err != nil {
 		return err
 	}
 
-	secretKey, err := checkValidParameter("secretKey", r.Options)
+	secretKey, err := checkValidParameter("secretKey", options)
 	if err != nil {
 		return err
 	}
 
 	// TODO: remember to fix this, since the user could pass false and it would
 	// become true.
-	_, err = checkValidParameter("secure", r.Options)
+	_, err = checkValidParameter("secure", options)
 	if err == nil {
 		secure = true
 	}
@@ -141,12 +151,13 @@ func (d MinioDriver) createClient(r volume.Request) error {
 		}
 	}
 
-	bucketName, err := checkValidParameter("bucket", r.Options)
-	if err != nil {
+	bucketName, err := checkValidParameter("bucket", options)
+	if err != nil || bucketName == "" {
 		if err = d.createBucket(bucketName); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -156,7 +167,7 @@ func (d MinioDriver) createBucket(bucket string) error {
 		return err
 	}
 	if !exists {
-		if err := client.CreateBucket(bucket, d.c.Client); err != nil {
+		if err := d.c.Client.MakeBucket(bucket, location); err != nil {
 			return err
 		}
 	}

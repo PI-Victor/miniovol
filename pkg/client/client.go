@@ -33,11 +33,3 @@ func NewMinioClient(serverURI, accessKeyID, secretAccessKey string, secure bool)
 		SecretAccessKey: secretAccessKey,
 	}, nil
 }
-
-// CreateBucket creates a new bucket in the current session.
-func CreateBucket(bucketName string, c *minio.Client) error {
-	if err := c.MakeBucket(bucketName, location); err != nil {
-		return err
-	}
-	return nil
-}

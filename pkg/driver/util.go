@@ -14,6 +14,7 @@ const (
 	vers         = "1"
 	volumePrefix = "miniovol-"
 	bucketPrefix = "miniobucket-"
+	location     = "us-east-1"
 )
 
 type minfsCfg struct {
@@ -25,7 +26,8 @@ type minfsCfg struct {
 // ProvisionConfig updates the minfs config with the Minio instance details
 // (accessKeyID, secretAccessKey, serverURI)
 // This is necessary for minfs to autheticate with the Minio instance.
-func ProvisionConfig(m *MinioDriver) error {
+// NOTE: move this to the driver to streamline testing?
+func provisionConfig(m *MinioDriver) error {
 	cfg := newCfg(m.c.AccesKeyID, m.c.SecretAccessKey, vers)
 
 	details, err := json.Marshal(cfg)
@@ -61,13 +63,13 @@ func checkValidParameter(param string, opts map[string]string) (string, error) {
 	return stringParam, nil
 }
 
-func respError(errMsg string) volume.Response {
-	return volume.Response{
-		Err: errMsg,
-	}
-}
+func volumeResp(mountPoint,
+	rName string,
+	volumes []*volume.Volume,
+	capabilities volume.Capability,
+	err string,
+) volume.Response {
 
-func volumeResp(mountPoint, rName string, volumes []*volume.Volume, capabilities volume.Capability, err string) volume.Response {
 	return volume.Response{
 		Err: err,
 		Volume: &volume.Volume{
