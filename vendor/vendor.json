@@ -87,12 +87,6 @@
 			"revisionTime": "2017-01-01T22:57:21Z"
 		},
 		{
-			"checksumSHA1": "2bLk/+qSRrzctGuDCiCPygXbUQQ=",
-			"path": "github.com/spf13/cobra",
-			"revision": "1dd5ff2e11b6dca62fdcb275eb804b94607d8b06",
-			"revisionTime": "2016-09-04T11:42:13Z"
-		},
-		{
 			"checksumSHA1": "AxfxmmBpbjQoaQKXbERcEw9pv+U=",
 			"path": "github.com/spf13/pflag",
 			"revision": "25f8b5b07aece3207895bf19f7ab517eb3b22a40",
