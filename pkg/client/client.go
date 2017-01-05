@@ -4,10 +4,6 @@ import (
 	minio "github.com/minio/minio-go"
 )
 
-const (
-	location = "us-east-1"
-)
-
 // MinioClient is a wrapper around minio.Client that also holds the bucket name
 // where we want to copy files.
 type MinioClient struct {

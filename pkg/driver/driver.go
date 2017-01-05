@@ -69,8 +69,7 @@ func (d MinioDriver) Get(r volume.Request) volume.Response {
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
-		err := fmt.Sprintf("requested volume is not found: %s", r.Name)
-		volumeResp("", "", nil, capability, err)
+		volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
 	}
 
 	return volumeResp(v.mountpoint, r.Name, nil, capability, "")
@@ -88,9 +87,7 @@ func (d MinioDriver) Path(r volume.Request) volume.Response {
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
-		return volume.Response{
-			Err: fmt.Sprintf("requested volume is not found: %s", r.Name),
-		}
+		volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
 	}
 	return volumeResp(v.mountpoint, "", nil, capability, "")
 }

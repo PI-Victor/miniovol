@@ -17,6 +17,22 @@ const (
 	location     = "us-east-1"
 )
 
+// Error implements the error interface to eliminate message duplication when
+// the driver checks for a specific volume
+type Error struct {
+	volumeName string
+}
+
+func (e Error) Error() string {
+	return fmt.Sprintf("volume %s not found", e.volumeName)
+}
+
+func newErrVolumeNotFound(v string) error {
+	return Error{
+		volumeName: v,
+	}
+}
+
 type minfsCfg struct {
 	Version   string `json:"version"`
 	AccessKey string `json:"accessKey"`
