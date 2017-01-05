@@ -1,17 +1,17 @@
 package driver
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
-	"encoding/json"
 	"os"
 
 	"github.com/docker/go-plugins-helpers/volume"
 )
 
 const (
-	cfgFile = "/etc/minfs/config.json"
-	vers    = "1"
+	cfgFile      = "/etc/minfs/config.json"
+	vers         = "1"
 	volumePrefix = "miniovol-"
 	bucketPrefix = "miniobucket-"
 )
@@ -49,10 +49,9 @@ func newCfg(accessKey, secretKey, version string) *minfsCfg {
 	}
 }
 
-func createName(prefix string) string  {
+func createName(prefix string) string {
 	return fmt.Sprintf("%s%08x", prefix, rand.Uint32())
 }
-
 
 func checkValidParameter(param string, opts map[string]string) (string, error) {
 	stringParam, exists := opts[param]
@@ -63,19 +62,19 @@ func checkValidParameter(param string, opts map[string]string) (string, error) {
 }
 
 func respError(errMsg string) volume.Response {
-return volume.Response{
+	return volume.Response{
 		Err: errMsg,
 	}
 }
 
-func volumeResp(mountPoint, rName string, volumes []*volume.Volume, capabilities volume.Capability, err string) volume.Response{
+func volumeResp(mountPoint, rName string, volumes []*volume.Volume, capabilities volume.Capability, err string) volume.Response {
 	return volume.Response{
 		Err: err,
 		Volume: &volume.Volume{
 			Mountpoint: mountPoint,
-			Name: rName,
+			Name:       rName,
 		},
-		Volumes: volumes,
+		Volumes:      volumes,
 		Capabilities: capabilities,
 	}
 }
