@@ -2,6 +2,7 @@ package driver
 
 import (
 	"fmt"
+	_ "path/filepath"
 	"sync"
 
 	"github.com/docker/go-plugins-helpers/volume"
@@ -17,7 +18,6 @@ type minioVolume struct {
 	// NOTE: check to see if buckets would really collide if we specify them only
 	// in the driver, instead of attaching them individually to each volume.
 	bucketName string
-	localFS    string
 }
 
 // MinioDriver is the driver used by docker.
@@ -48,12 +48,18 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 	defer d.m.Unlock()
 
 	if err := d.createClient(r.Options); err != nil {
-		errMsg := fmt.Sprintf("error creating client: %s", err)
-		return volumeResp("", "", nil, capability, errMsg)
+		return volumeResp("",
+			"",
+			nil,
+			capability,
+			fmt.Sprintf("error creating client: %s", err),
+		)
 	}
 
 	v := newVolume("", "", d.c.BucketName)
 	d.volumes[r.Name] = v
+	volumePath := createName(volumePrefix)
+	v.mountpoint = fmt.Sprintf("/mnt/miniomnt%s", volumePath)
 
 	return volumeResp("", "", nil, capability, "")
 }
@@ -78,7 +84,15 @@ func (d MinioDriver) Get(r volume.Request) volume.Response {
 
 // Remove deletes a volume.
 func (d MinioDriver) Remove(r volume.Request) volume.Response {
+	d.m.Lock()
+	defer d.m.Lock()
+
+	v, exists := r.Options[r.Name]
+	if !exists {
+		return volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
+	}
 	return volume.Response{}
+
 }
 
 // Path returns the mount path of the current volume.
@@ -109,7 +123,7 @@ func (d MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 		return volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
 	}
 
-	cmd := fmt.Sprintf("umount")
+	cmd := fmt.Sprintf("umount %s", v.mountpoint)
 	return volume.Response{}
 }
 
@@ -118,14 +132,20 @@ func (d MinioDriver) Capabilities(r volume.Request) volume.Response {
 	return volume.Response{}
 }
 
+// mountVolume is a helper function for the docker interface that mounts the
+// filesystem with the minfs driver.
 func (d MinioDriver) mountVolume(volume *minioVolume) error {
 	return nil
 }
 
+// unmountVolume is a helper function for the docker interface that unmounts
+// the mounted minio bucket from the local fs.
 func (d MinioDriver) unmountVolume(volume *minioVolume) error {
 	return nil
 }
 
+// createClient is a helper function that uses minio go bindings to instantiate
+// a new session with minio's API.
 func (d MinioDriver) createClient(options map[string]string) error {
 	var secure bool
 
@@ -133,17 +153,14 @@ func (d MinioDriver) createClient(options map[string]string) error {
 	if err != nil {
 		return err
 	}
-
 	accessKey, err := checkParam("accessKey", options)
 	if err != nil {
 		return err
 	}
-
 	secretKey, err := checkParam("secretKey", options)
 	if err != nil {
 		return err
 	}
-
 	// TODO: remember to fix this, since the user could pass false and it would
 	// become true.
 	_, err = checkParam("secure", options)
@@ -168,6 +185,8 @@ func (d MinioDriver) createClient(options map[string]string) error {
 	return nil
 }
 
+// createBucket is a helper function that creates a bucket on minio to be used
+// by the volume plugin to mount a minio bucket locally.
 func (d MinioDriver) createBucket(bucket string) error {
 	exists, err := d.c.Client.BucketExists(bucket)
 	if err != nil {
