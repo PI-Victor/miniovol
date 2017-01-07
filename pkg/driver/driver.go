@@ -56,7 +56,7 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 			"",
 			nil,
 			capability,
-			fmt.Sprintf("error creating client: %s", err),
+			fmt.Errorf("error creating client: %s", err),
 		)
 	}
 
@@ -65,7 +65,7 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 	volumePath := createName(volumePrefix)
 	v.mountpoint = fmt.Sprintf("/mnt/miniomnt_%s", volumePath)
 
-	return volumeResp("", "", nil, capability, "")
+	return volumeResp("", "", nil, capability, nil)
 }
 
 // List lists all currently available volumes.
@@ -80,10 +80,10 @@ func (d MinioDriver) Get(r volume.Request) volume.Response {
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
-		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
+		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name))
 	}
 
-	return volumeResp(v.mountpoint, r.Name, nil, capability, "")
+	return volumeResp(v.mountpoint, r.Name, nil, capability, nil)
 }
 
 // Remove attempts to remove a volume if it's not currently in use.
@@ -93,22 +93,22 @@ func (d MinioDriver) Remove(r volume.Request) volume.Response {
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
-		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
+		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name))
 	}
 
 	if v.connections == 0 {
 		if err := os.RemoveAll(v.mountpoint); err != nil {
-			return volumeResp("", "", nil, capability, err.Error())
+			return volumeResp("", "", nil, capability, err)
 		}
 		delete(d.volumes, r.Name)
-		return volumeResp("", "", nil, capability, "")
+		return volumeResp("", "", nil, capability, nil)
 	}
 
 	return volumeResp("",
 		"",
 		nil,
 		capability,
-		fmt.Errorf("volume %s currently in use by container", r.Name).Error(),
+		fmt.Errorf("volume %s currently in use by container", r.Name),
 	)
 }
 
@@ -119,15 +119,30 @@ func (d MinioDriver) Path(r volume.Request) volume.Response {
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
-		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
+		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name))
 	}
-	return volumeResp(v.mountpoint, "", nil, capability, "")
+	return volumeResp(v.mountpoint, "", nil, capability, nil)
 }
 
 // Mount tries to mount a path inside the docker volume to a minio bucket
 // instance with a bucket defined.
 func (d MinioDriver) Mount(r volume.MountRequest) volume.Response {
-	return volume.Response{}
+	d.m.Lock()
+	defer d.m.Unlock()
+
+	v, exists := d.volumes[r.Name]
+	if !exists {
+		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name))
+	}
+
+	if err := d.mountVolume(v); err != nil {
+		return volumeResp("", "", nil, capability, err)
+	}
+	// if the mount was successful, then increment the number of connections we
+	// have to the mount.
+	v.connections++
+
+	return volumeResp("", "", nil, capability, nil)
 }
 
 // Unmount will unmount a specified volume.
@@ -137,23 +152,23 @@ func (d MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
-		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
+		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name))
 	}
 
 	err := d.unmountVolume(v)
 	if err != nil {
-		return volumeResp("", "", nil, capability, err.Error())
+		return volumeResp("", "", nil, capability, err)
 	}
 
 	if v.connections <= 1 {
 		if err := d.unmountVolume(v); err != nil {
-			return volumeResp("", "", nil, capability, err.Error())
+			return volumeResp("", "", nil, capability, err)
 		}
 		v.connections = 0
-		return volumeResp("", "", nil, capability, "")
+		return volumeResp("", "", nil, capability, nil)
 	}
 	v.connections--
-	return volumeResp("", "", nil, capability, "")
+	return volumeResp("", "", nil, capability, nil)
 }
 
 // Capabilities
@@ -204,13 +219,14 @@ func (d MinioDriver) createClient(options map[string]string) error {
 		}
 	}
 
+	// TODO: implement reusability of a bucket by passing its name as a parameter.
 	bucketName, err := checkParam("bucket", options)
 	if err != nil || bucketName == "" {
 		if err = d.createBucket(bucketName); err != nil {
 			return err
 		}
 	}
-
+	d.c.BucketName = bucketName
 	return nil
 }
 

@@ -11,7 +11,7 @@ import (
 
 const (
 	cfgFile      = "/etc/minfs/config.json"
-	vers         = "1"
+	vers         = "v1"
 	volumePrefix = "miniovol-"
 	bucketPrefix = "miniobucket-"
 	location     = "us-east-1"
@@ -83,11 +83,11 @@ func volumeResp(mountPoint,
 	rName string,
 	volumes []*volume.Volume,
 	capabilities volume.Capability,
-	err string,
+	err error,
 ) volume.Response {
 
 	return volume.Response{
-		Err: err,
+		Err: err.Error(),
 		Volume: &volume.Volume{
 			Mountpoint: mountPoint,
 			Name:       rName,
