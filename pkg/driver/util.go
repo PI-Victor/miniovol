@@ -27,7 +27,7 @@ func (e Error) Error() string {
 	return fmt.Sprintf("volume %s not found", e.volumeName)
 }
 
-func newErrVolumeNotFound(v string) error {
+func newErrVolNotFound(v string) error {
 	return Error{
 		volumeName: v,
 	}

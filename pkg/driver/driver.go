@@ -2,6 +2,8 @@ package driver
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	_ "path/filepath"
 	"sync"
 
@@ -13,8 +15,10 @@ import (
 var capability volume.Capability
 
 type minioVolume struct {
-	name       string
-	mountpoint string
+	name        string
+	mountpoint  string
+	connections int
+
 	// NOTE: check to see if buckets would really collide if we specify them only
 	// in the driver, instead of attaching them individually to each volume.
 	bucketName string
@@ -59,7 +63,7 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 	v := newVolume("", "", d.c.BucketName)
 	d.volumes[r.Name] = v
 	volumePath := createName(volumePrefix)
-	v.mountpoint = fmt.Sprintf("/mnt/miniomnt%s", volumePath)
+	v.mountpoint = fmt.Sprintf("/mnt/miniomnt_%s", volumePath)
 
 	return volumeResp("", "", nil, capability, "")
 }
@@ -76,23 +80,36 @@ func (d MinioDriver) Get(r volume.Request) volume.Response {
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
-		return volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
+		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
 	}
 
 	return volumeResp(v.mountpoint, r.Name, nil, capability, "")
 }
 
-// Remove deletes a volume.
+// Remove attempts to remove a volume if it's not currently in use.
 func (d MinioDriver) Remove(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Lock()
 
-	v, exists := r.Options[r.Name]
+	v, exists := d.volumes[r.Name]
 	if !exists {
-		return volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
+		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
 	}
-	return volume.Response{}
 
+	if v.connections == 0 {
+		if err := os.RemoveAll(v.mountpoint); err != nil {
+			return volumeResp("", "", nil, capability, err.Error())
+		}
+		delete(d.volumes, r.Name)
+		return volumeResp("", "", nil, capability, "")
+	}
+
+	return volumeResp("",
+		"",
+		nil,
+		capability,
+		fmt.Errorf("volume %s currently in use by container", r.Name).Error(),
+	)
 }
 
 // Path returns the mount path of the current volume.
@@ -102,7 +119,7 @@ func (d MinioDriver) Path(r volume.Request) volume.Response {
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
-		return volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
+		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
 	}
 	return volumeResp(v.mountpoint, "", nil, capability, "")
 }
@@ -120,11 +137,23 @@ func (d MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
-		return volumeResp("", "", nil, capability, newErrVolumeNotFound(r.Name).Error())
+		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
 	}
 
-	cmd := fmt.Sprintf("umount %s", v.mountpoint)
-	return volume.Response{}
+	err := d.unmountVolume(v)
+	if err != nil {
+		return volumeResp("", "", nil, capability, err.Error())
+	}
+
+	if v.connections <= 1 {
+		if err := d.unmountVolume(v); err != nil {
+			return volumeResp("", "", nil, capability, err.Error())
+		}
+		v.connections = 0
+		return volumeResp("", "", nil, capability, "")
+	}
+	v.connections--
+	return volumeResp("", "", nil, capability, "")
 }
 
 // Capabilities
@@ -141,7 +170,7 @@ func (d MinioDriver) mountVolume(volume *minioVolume) error {
 // unmountVolume is a helper function for the docker interface that unmounts
 // the mounted minio bucket from the local fs.
 func (d MinioDriver) unmountVolume(volume *minioVolume) error {
-	return nil
+	return exec.Command("umount", volume.mountpoint).Run()
 }
 
 // createClient is a helper function that uses minio go bindings to instantiate
