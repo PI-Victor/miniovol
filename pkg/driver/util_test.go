@@ -21,9 +21,9 @@ func TestError(t *testing.T) {
 func TestNewCfg(t *testing.T) {
 	accesKey := "testKey"
 	secretKey := "secretKey"
-	version := "v1"
+	version := "1"
 
-	fakeCfg := minfsCfg{
+	fakeCfg := &minfsCfg{
 		Version:   version,
 		AccessKey: accesKey,
 		SecretKey: secretKey,
@@ -38,7 +38,7 @@ func TestNewCfg(t *testing.T) {
 func TestCreateName(t *testing.T) {
 	testPrefix := "testPrefix"
 	newName := createName(testPrefix)
-	if strings.Contains(newName, testPrefix) {
+	if !strings.Contains(newName, testPrefix) {
 		t.Errorf("Expected %s to contain \"%s\"", newName, testPrefix)
 	}
 }
