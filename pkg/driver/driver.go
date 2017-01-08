@@ -70,7 +70,18 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 
 // List lists all currently available volumes.
 func (d MinioDriver) List(r volume.Request) volume.Response {
-	return volume.Response{}
+	d.m.Lock()
+	defer d.m.Unlock()
+
+	var vols []*volume.Volume
+	for name, v := range d.volumes {
+		vols = append(vols,
+			&volume.Volume{
+				Name:       name,
+				Mountpoint: v.mountpoint,
+			})
+	}
+	return volumeResp("", "", vols, capability, nil)
 }
 
 // Get retrieves information about a current volume.
@@ -173,7 +184,10 @@ func (d MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 
 // Capabilities
 func (d MinioDriver) Capabilities(r volume.Request) volume.Response {
-	return volume.Response{}
+	localCapability := volume.Capability{
+		Scope: "local",
+	}
+	return volumeResp("", "", nil, localCapability, nil)
 }
 
 // mountVolume is a helper function for the docker interface that mounts the
