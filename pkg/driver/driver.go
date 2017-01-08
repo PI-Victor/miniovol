@@ -29,7 +29,11 @@ type MinioDriver struct {
 	m *sync.RWMutex
 	c *client.MinioClient
 
-	volumes map[string]*minioVolume
+	server    string
+	accessKey string
+	secretKey string
+	secure    bool
+	volumes   map[string]*minioVolume
 }
 
 // NewMinioDriver creates a new driver for the docker plugin.
@@ -193,7 +197,10 @@ func (d MinioDriver) Capabilities(r volume.Request) volume.Response {
 // mountVolume is a helper function for the docker interface that mounts the
 // filesystem with the minfs driver.
 func (d MinioDriver) mountVolume(volume *minioVolume) error {
-	return nil
+	minioPath := fmt.Sprintf("%s/%s", d.server, volume.bucketName)
+	cmd := fmt.Sprintf("mount -t minfs %s %s", volume.mountpoint, minioPath)
+
+	return exec.Command("sh", "-c", cmd).Run()
 }
 
 // unmountVolume is a helper function for the docker interface that unmounts
@@ -211,14 +218,20 @@ func (d MinioDriver) createClient(options map[string]string) error {
 	if err != nil {
 		return err
 	}
+	d.server = server
+
 	accessKey, err := checkParam("accessKey", options)
 	if err != nil {
 		return err
 	}
+	d.accessKey = accessKey
+
 	secretKey, err := checkParam("secretKey", options)
 	if err != nil {
 		return err
 	}
+	d.secretKey = secretKey
+
 	// TODO: remember to fix this, since the user could pass false and it would
 	// become true.
 	_, err = checkParam("secure", options)
