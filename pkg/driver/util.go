@@ -43,6 +43,7 @@ type minfsCfg struct {
 // (accessKeyID, secretAccessKey, serverURI)
 // This is necessary for minfs to autheticate with the Minio instance.
 // NOTE: move this to the driver to streamline testing?
+// NOTE: if the API is correct, it should be possible to do this via env vars.
 func provisionConfig(m *MinioDriver) error {
 	cfg := newCfg(m.c.AccesKeyID, m.c.SecretAccessKey, vers)
 

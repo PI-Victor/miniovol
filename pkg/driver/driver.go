@@ -170,11 +170,6 @@ func (d MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name))
 	}
 
-	err := d.unmountVolume(v)
-	if err != nil {
-		return volumeResp("", "", nil, capability, err)
-	}
-
 	if v.connections <= 1 {
 		if err := d.unmountVolume(v); err != nil {
 			return volumeResp("", "", nil, capability, err)
@@ -269,6 +264,7 @@ func (d MinioDriver) createBucket(bucket string) error {
 			return err
 		}
 	}
+
 	d.c.BucketName = bucket
 	return nil
 }
