@@ -11,7 +11,7 @@ import (
 
 const (
 	cfgFile      = "/etc/minfs/config.json"
-	vers         = "v1"
+	vers         = "1"
 	volumePrefix = "miniovol-"
 	bucketPrefix = "miniobucket-"
 	location     = "us-east-1"

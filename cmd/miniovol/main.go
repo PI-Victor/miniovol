@@ -19,6 +19,6 @@ func main() {
 	log.Printf("Trying to listen on socket %s", socketAddress)
 	err := h.ServeUnix(socketAddress, rootID)
 	if err != nil {
-		log.Fatalf("An error occured while trying to serve through socket: %v", err)
+		log.Fatalf("Error while trying to serve through socket: %v", err)
 	}
 }
