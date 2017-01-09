@@ -18,6 +18,7 @@
     "capabilities": [
       "CAP_SYS_ADMIN"
     ],
+    "propagatedmount": "/mnt",
     "devices": [
       {
         "path": "/dev/fuse"
