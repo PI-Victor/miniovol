@@ -2,6 +2,7 @@ package driver
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -38,10 +39,16 @@ type MinioDriver struct {
 }
 
 // NewMinioDriver creates a new driver for the docker plugin.
-func NewMinioDriver(c *client.MinioClient) MinioDriver {
+func NewMinioDriver(client *client.MinioClient, secure bool) MinioDriver {
 	return MinioDriver{
-		m:       &sync.RWMutex{},
-		volumes: make(map[string]*minioVolume),
+		c: client,
+		m: &sync.RWMutex{},
+
+		server:    client.ServerURI,
+		accessKey: client.AccesKeyID,
+		secretKey: client.SecretAccessKey,
+		secure:    secure,
+		volumes:   make(map[string]*minioVolume),
 	}
 }
 
@@ -76,6 +83,7 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 	volName := createName(volumePrefix)
 	d.volumes[r.Name] = newVolume(volName, volMount, d.c.BucketName)
 
+	logrus.WithField("method", "create").Debugf("This is the driver with volumes at create: %#v", d.volumes)
 	return volumeResp("", "", nil, capability, "")
 }
 
@@ -100,7 +108,7 @@ func (d MinioDriver) List(r volume.Request) volume.Response {
 func (d MinioDriver) Get(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
-	//logrus.WithField("method", "get").Debug("GOT HERE")
+	logrus.WithField("method", "get").Debugf("these are the volumes: %#v", d.volumes)
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
@@ -114,13 +122,12 @@ func (d MinioDriver) Get(r volume.Request) volume.Response {
 func (d MinioDriver) Remove(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Lock()
-
-	//logrus.WithField("method", "remove").Debug("GOT HERE")
+	logrus.WithField("method", "remove").Debugf("THIS IS THE MOUNTPOINT REQ: %#v", r)
 	v, exists := d.volumes[r.Name]
 	if !exists {
 		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
 	}
-
+	logrus.WithField("method", "remove").Debugf("THIS IS THE MOUNTPOINT: %#v", v)
 	if v.connections == 0 {
 		if err := os.RemoveAll(v.mountpoint); err != nil {
 			return volumeResp("", "", nil, capability, err.Error())
@@ -146,7 +153,7 @@ func (d MinioDriver) Path(r volume.Request) volume.Response {
 	if !exists {
 		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
 	}
-	return volumeResp(v.mountpoint, "", nil, capability, "")
+	return volumeResp(v.mountpoint, r.Name, nil, capability, "")
 }
 
 // Mount tries to mount a path inside the docker volume to a minio bucket
@@ -154,21 +161,28 @@ func (d MinioDriver) Path(r volume.Request) volume.Response {
 func (d MinioDriver) Mount(r volume.MountRequest) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
-	logrus.WithField("method", "mount").Debug("GOT HERE")
-
+	logrus.WithField("method", "mount").Debugf("THIS IS THE MOUNT REQUESTTT: %#v", r)
+	log.Printf("THIS IS THE DRIVER IN THE MOUNT CALLER: %#v", d)
+	log.Printf("THIS IS THE DRIVER IN THE MOUNT REQUEST: %#v", r)
 	v, exists := d.volumes[r.Name]
 	if !exists {
 		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
 	}
 
+	if v.connections > 0 {
+		v.connections++
+		return volumeResp(v.mountpoint, r.Name, nil, capability, "")
+	}
+
 	if err := d.mountVolume(v); err != nil {
+		log.Print(err)
 		return volumeResp("", "", nil, capability, err.Error())
 	}
 	// if the mount was successful, then increment the number of connections we
 	// have to the mount.
 	v.connections++
 
-	return volumeResp(v.mountpoint, "", nil, capability, "")
+	return volumeResp(v.mountpoint, r.Name, nil, capability, "")
 }
 
 // Unmount will unmount a specified volume.
@@ -204,19 +218,31 @@ func (d MinioDriver) Capabilities(r volume.Request) volume.Response {
 
 // mountVolume is a helper function for the docker interface that mounts the
 // filesystem with the minfs driver.
-func (d MinioDriver) mountVolume(volume *minioVolume) error {
+func (d *MinioDriver) mountVolume(volume *minioVolume) error {
+
 	minioPath := fmt.Sprintf("%s/%s", d.server, volume.bucketName)
-	cmd := fmt.Sprintf("mount -t minfs %s %s", minioPath, volume.mountpoint)
-	if err := provisionConfig(&d); err != nil {
+
+	//NOTE: make this adjustable in the future for https if secure is passed.
+	cmd := fmt.Sprintf("mount -t minfs http://%s %s", minioPath, volume.mountpoint)
+	if err := provisionConfig(d); err != nil {
 		return err
 	}
-
-	return exec.Command("sh", "-c", cmd).Run()
+	out, err := exec.Command("cat", "/etc/minfs/config.json").Output()
+	if err != nil {
+		log.Print(err)
+	}
+	log.Printf("%s", out)
+	out1, err1 := exec.Command("sh", "-c", cmd).Output()
+	if err != nil {
+		log.Print(err1)
+	}
+	log.Printf("%s", out1)
+	return nil
 }
 
 // unmountVolume is a helper function for the docker interface that unmounts
 // the mounted minio bucket from the local fs.
-func (d MinioDriver) unmountVolume(volume *minioVolume) error {
+func (d *MinioDriver) unmountVolume(volume *minioVolume) error {
 	return exec.Command("umount", volume.mountpoint).Run()
 }
 
@@ -251,7 +277,7 @@ func (d *MinioDriver) createClient(options map[string]string) error {
 	}
 
 	if d.c == nil {
-		d.c, err = client.NewMinioClient(server, accessKey, secretKey, secure)
+		d.c, err = client.NewMinioClient(server, accessKey, secretKey, "", secure)
 		if err != nil {
 			return err
 		}
@@ -289,7 +315,7 @@ func (d *MinioDriver) createBucket() error {
 func (d *MinioDriver) createVolumeMount(volumeName string) error {
 	//	logrus.WithField("method", "createVolMo").Debug("GOT HERE")
 	if _, err := os.Stat(volumeName); os.IsNotExist(err) {
-		if err = os.MkdirAll(volumeName, 0700); err != nil {
+		if err = os.MkdirAll(volumeName, 0755); err != nil {
 			return err
 		}
 	} else if err != nil {

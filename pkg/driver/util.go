@@ -1,8 +1,8 @@
 package driver
 
 import (
-	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 
@@ -46,27 +46,33 @@ type minfsCfg struct {
 // NOTE: move this to the driver to streamline testing?
 // NOTE: if the API is correct, it should be possible to do this via env vars.
 func provisionConfig(m *MinioDriver) error {
-
 	if _, err := os.Stat(cfgDir); os.IsNotExist(err) {
-		if err = os.MkdirAll(cfgDir, 0700); err != nil {
+		if err = os.MkdirAll(cfgDir, 0755); err != nil {
+			log.Printf("%#v", err)
 			return err
 		}
 	} else if err != nil {
+		log.Printf("%#v", err)
 		return err
 	}
 
-	cfg := newCfg(m.c.AccesKeyID, m.c.SecretAccessKey, vers)
+	//cfg := newCfg(m.c.AccesKeyID, m.c.SecretAccessKey, vers)
 
-	details, err := json.Marshal(cfg)
-	if err != nil {
-		return nil
-	}
-	fh, err := os.Open(cfgFile)
+	details := fmt.Sprintf(`
+{"version":"%s","accessKey":"%s","secretKey":"%s"}
+`, vers, m.accessKey, m.secretKey)
+	log.Printf("%#v", details)
+	fh, err := os.Create(cfgFile)
 	if err != nil {
 		return err
 	}
 	defer fh.Close()
-	fh.Write(details)
+
+	fh.WriteString(details)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

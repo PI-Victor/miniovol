@@ -16,7 +16,7 @@ type MinioClient struct {
 
 // NewMinioClient returns a new minio client based on passed access specs and
 // creates a new bucket if it doesn't exist.
-func NewMinioClient(serverURI, accessKeyID, secretAccessKey string, secure bool) (*MinioClient, error) {
+func NewMinioClient(serverURI, accessKeyID, secretAccessKey, bucket string, secure bool) (*MinioClient, error) {
 	c, err := minio.New(serverURI, accessKeyID, secretAccessKey, secure)
 	if err != nil {
 		return nil, err
