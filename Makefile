@@ -1,4 +1,4 @@
-PLUGIN_NAME=cloudflavor/minivol
+PLUGIN_NAME=cloudflavor/miniovol
 PLUGIN_TAG=latest
 
 .PHONY: clean
@@ -19,13 +19,15 @@ docker:
 
 # creates the rootfs needed to distribute the plugin.
 rootfs:
-# this will check if we already have exported a rootfs and removes it if so.
-	@sudo rm -rf plugin.spec/rootfs/*
-	@sudo rm -rf plugin.spec/rootfs/.dockerenv
+	@echo 'Create new rootfs for plugin...'
 	@docker create --name tmp ${PLUGIN_NAME}:rootfs
 	@docker export tmp | tar -x -C plugin.spec/rootfs
 	@docker rm -vf tmp
 
 # creates the plugin based on files in plugin.spec
 create:
-	@docker plugin rm ${PLUGIN_NAME}:${PLUGIN_TAG} || true
+	@echo 'Removing plugin if it exists...'
+	@docker plugin rm -f ${PLUGIN_NAME}:${PLUGIN_TAG} || true
+	@echo 'Create new plugin...'
+	@sudo docker plugin create ${PLUGIN_NAME}:${PLUGIN_TAG} plugin.spec
+	@docker plugin enable ${PLUGIN_NAME}:${PLUGIN_TAG}

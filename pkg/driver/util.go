@@ -11,6 +11,7 @@ import (
 
 const (
 	cfgFile      = "/etc/minfs/config.json"
+	cfgDir       = "/etc/minfs/"
 	vers         = "1"
 	volumePrefix = "miniovol-"
 	bucketPrefix = "miniobucket-"
@@ -45,6 +46,15 @@ type minfsCfg struct {
 // NOTE: move this to the driver to streamline testing?
 // NOTE: if the API is correct, it should be possible to do this via env vars.
 func provisionConfig(m *MinioDriver) error {
+
+	if _, err := os.Stat(cfgDir); os.IsNotExist(err) {
+		if err = os.MkdirAll(cfgDir, 0700); err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
 	cfg := newCfg(m.c.AccesKeyID, m.c.SecretAccessKey, vers)
 
 	details, err := json.Marshal(cfg)

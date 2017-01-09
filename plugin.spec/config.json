@@ -2,20 +2,26 @@
   "manifestVersion": "v0.1",
   "description": "Minio plugin for Docker",
   "documentation": "https://github.com/cloudflavor/miniovol/README.md",
-  "entrypoint": ["/go/bin/miniovol"],
+  "entrypoint": [
+    "/usr/bin/miniovol"
+  ],
   "network": {
     "type": "host"
   },
   "interface": {
-    "types": ["docker.volumedriver/1.0"],
+    "types": [
+      "docker.volumedriver/1.0"
+    ],
     "socket": "miniovol.sock"
   },
   "linux": {
-      "capabilities": ["CAP_SYS_ADMIN"],
-      "devices": [
-        {
-          "path": "/dev/fuse"
-        }
-      ]
+    "capabilities": [
+      "CAP_SYS_ADMIN"
+    ],
+    "devices": [
+      {
+        "path": "/dev/fuse"
+      }
+    ]
   }
 }

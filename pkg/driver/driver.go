@@ -2,9 +2,10 @@ package driver
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
-	_ "path/filepath"
+	"path/filepath"
 	"sync"
 
 	"github.com/docker/go-plugins-helpers/volume"
@@ -47,6 +48,7 @@ func newVolume(name, mountPoint, bucketname string) *minioVolume {
 	return &minioVolume{
 		name:       name,
 		mountpoint: mountPoint,
+		bucketName: bucketname,
 	}
 }
 
@@ -63,11 +65,16 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 			fmt.Errorf("error creating client: %s", err),
 		)
 	}
-
-	v := newVolume("", "", d.c.BucketName)
-	d.volumes[r.Name] = v
+	log.Printf("Got here!: %#v", d)
 	volumePath := createName(volumePrefix)
-	v.mountpoint = fmt.Sprintf("/mnt/miniomnt_%s", volumePath)
+	volumeMount := filepath.Join("/mnt/miniomnt_%s", volumePath)
+	if err := d.createVolumeMount(volumeMount); err != nil {
+		return volumeResp("", "", nil, capability, err)
+	}
+
+	volumeName := createName(volumePrefix)
+	v := newVolume(volumeName, volumeMount, d.c.BucketName)
+	d.volumes[r.Name] = v
 
 	return volumeResp("", "", nil, capability, nil)
 }
@@ -181,7 +188,7 @@ func (d MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 	return volumeResp("", "", nil, capability, nil)
 }
 
-// Capabilities
+// Capabilities returns the capabilities needed for this plugin.
 func (d MinioDriver) Capabilities(r volume.Request) volume.Response {
 	localCapability := volume.Capability{
 		Scope: "local",
@@ -244,7 +251,7 @@ func (d MinioDriver) createClient(options map[string]string) error {
 	// TODO: implement reusability of a bucket by passing its name as a parameter.
 	bucketName, err := checkParam("bucket", options)
 	if err != nil || bucketName == "" {
-		if err = d.createBucket(bucketName); err != nil {
+		if err = d.createBucket(); err != nil {
 			return err
 		}
 	}
@@ -254,7 +261,8 @@ func (d MinioDriver) createClient(options map[string]string) error {
 
 // createBucket is a helper function that creates a bucket on minio to be used
 // by the volume plugin to mount a minio bucket locally.
-func (d MinioDriver) createBucket(bucket string) error {
+func (d MinioDriver) createBucket() error {
+	bucket := createName(bucketPrefix)
 	exists, err := d.c.Client.BucketExists(bucket)
 	if err != nil {
 		return err
@@ -266,5 +274,17 @@ func (d MinioDriver) createBucket(bucket string) error {
 	}
 
 	d.c.BucketName = bucket
+	return nil
+}
+
+func (d MinioDriver) createVolumeMount(volumeName string) error {
+	if _, err := os.Stat(volumeName); os.IsNotExist(err) {
+		if err = os.MkdirAll(volumeName, 0700); err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
 	return nil
 }
