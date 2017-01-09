@@ -19,10 +19,11 @@ docker:
 
 # creates the rootfs needed to distribute the plugin.
 rootfs:
-	@echo 'Create new rootfs for plugin...'
+	@echo 'Creating new rootfs for plugin...'
 	@docker create --name tmp ${PLUGIN_NAME}:rootfs
 	@docker export tmp | tar -x -C plugin.spec/rootfs
 	@docker rm -vf tmp
+	@docker rmi ${PLUGIN_NAME}:rootfs
 
 # creates the plugin based on files in plugin.spec
 create:

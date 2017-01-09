@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	_ "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/go-plugins-helpers/volume"
 
 	"github.com/cloudflavor/miniovol/pkg/client"
@@ -74,7 +74,7 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 	}
 
 	volName := createName(volumePrefix)
-	d.volumes["test"] = newVolume(volName, volMount, d.c.BucketName)
+	d.volumes[r.Name] = newVolume(volName, volMount, d.c.BucketName)
 
 	return volumeResp("", "", nil, capability, "")
 }
@@ -154,7 +154,7 @@ func (d MinioDriver) Path(r volume.Request) volume.Response {
 func (d MinioDriver) Mount(r volume.MountRequest) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
-	//logrus.WithField("method", "mount").Debug("GOT HERE")
+	logrus.WithField("method", "mount").Debug("GOT HERE")
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
@@ -206,7 +206,10 @@ func (d MinioDriver) Capabilities(r volume.Request) volume.Response {
 // filesystem with the minfs driver.
 func (d MinioDriver) mountVolume(volume *minioVolume) error {
 	minioPath := fmt.Sprintf("%s/%s", d.server, volume.bucketName)
-	cmd := fmt.Sprintf("mount -t minfs %s %s", volume.mountpoint, minioPath)
+	cmd := fmt.Sprintf("mount -t minfs %s %s", minioPath, volume.mountpoint)
+	if err := provisionConfig(&d); err != nil {
+		return err
+	}
 
 	return exec.Command("sh", "-c", cmd).Run()
 }
