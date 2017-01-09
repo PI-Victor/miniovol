@@ -74,8 +74,7 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 	}
 
 	volName := createName(volumePrefix)
-	vol := newVolume(volName, volMount, d.c.BucketName)
-	d.volumes["test"] = vol
+	d.volumes["test"] = newVolume(volName, volMount, d.c.BucketName)
 
 	return volumeResp("", "", nil, capability, "")
 }
