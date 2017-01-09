@@ -28,6 +28,7 @@ rootfs:
 # creates the plugin based on files in plugin.spec
 create:
 	@echo 'Removing plugin if it exists...'
+	@docker plugin disable ${PLUGIN_NAME}:${PLUGIN_TAG} || true 
 	@docker plugin rm -f ${PLUGIN_NAME}:${PLUGIN_TAG} || true
 	@echo 'Create new plugin...'
 	@sudo docker plugin create ${PLUGIN_NAME}:${PLUGIN_TAG} plugin.spec
