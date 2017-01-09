@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/go-plugins-helpers/volume"
 
 	"github.com/cloudflavor/miniovol/pkg/driver"
@@ -14,9 +15,10 @@ const (
 )
 
 func main() {
+	logrus.SetLevel(logrus.DebugLevel)
 	d := driver.NewMinioDriver(nil)
 	h := volume.NewHandler(d)
-	log.Printf("Trying to listen on socket %s", socketAddress)
+	log.Printf("Listening on socket %s...", socketAddress)
 	err := h.ServeUnix(socketAddress, rootID)
 	if err != nil {
 		log.Fatalf("Error while trying to serve through socket: %v", err)

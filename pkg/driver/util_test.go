@@ -59,7 +59,7 @@ func TestVolumeResp(t *testing.T) {
 		},
 	}
 
-	volumeResponse := volumeResp(mountPoint, rName, nil, capabilities, err)
+	volumeResponse := volumeResp(mountPoint, rName, nil, capabilities, err.Error())
 	if !reflect.DeepEqual(fakeVolumesResponse, volumeResponse) {
 		t.Errorf("Expected %#v to match %#v", volumeResponse, fakeVolumesResponse)
 	}

@@ -94,11 +94,11 @@ func volumeResp(mountPoint,
 	rName string,
 	volumes []*volume.Volume,
 	capabilities volume.Capability,
-	err error,
+	err string,
 ) volume.Response {
 
 	return volume.Response{
-		Err: err.Error(),
+		Err: err,
 		Volume: &volume.Volume{
 			Mountpoint: mountPoint,
 			Name:       rName,
