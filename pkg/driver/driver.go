@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/go-plugins-helpers/volume"
 
 	"github.com/cloudflavor/miniovol/pkg/client"
@@ -83,7 +82,6 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 	volName := createName(volumePrefix)
 	d.volumes[r.Name] = newVolume(volName, volMount, d.c.BucketName)
 
-	logrus.WithField("method", "create").Debugf("This is the driver with volumes at create: %#v", d.volumes)
 	return volumeResp("", "", nil, capability, "")
 }
 
@@ -92,7 +90,6 @@ func (d MinioDriver) List(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
 
-	//logrus.WithField("method", "list").Debug("GOT HERE")
 	var vols []*volume.Volume
 	for name, v := range d.volumes {
 		vols = append(vols,
@@ -108,7 +105,6 @@ func (d MinioDriver) List(r volume.Request) volume.Response {
 func (d MinioDriver) Get(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
-	logrus.WithField("method", "get").Debugf("these are the volumes: %#v", d.volumes)
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
@@ -122,12 +118,10 @@ func (d MinioDriver) Get(r volume.Request) volume.Response {
 func (d MinioDriver) Remove(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Lock()
-	logrus.WithField("method", "remove").Debugf("THIS IS THE MOUNTPOINT REQ: %#v", r)
 	v, exists := d.volumes[r.Name]
 	if !exists {
 		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
 	}
-	logrus.WithField("method", "remove").Debugf("THIS IS THE MOUNTPOINT: %#v", v)
 	if v.connections == 0 {
 		if err := os.RemoveAll(v.mountpoint); err != nil {
 			return volumeResp("", "", nil, capability, err.Error())
@@ -161,9 +155,7 @@ func (d MinioDriver) Path(r volume.Request) volume.Response {
 func (d MinioDriver) Mount(r volume.MountRequest) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
-	logrus.WithField("method", "mount").Debugf("THIS IS THE MOUNT REQUESTTT: %#v", r)
-	log.Printf("THIS IS THE DRIVER IN THE MOUNT CALLER: %#v", d)
-	log.Printf("THIS IS THE DRIVER IN THE MOUNT REQUEST: %#v", r)
+
 	v, exists := d.volumes[r.Name]
 	if !exists {
 		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
@@ -189,7 +181,6 @@ func (d MinioDriver) Mount(r volume.MountRequest) volume.Response {
 func (d MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
-	//logrus.WithField("method", "unmount").Debug("GOT HERE")
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
@@ -212,7 +203,6 @@ func (d MinioDriver) Capabilities(r volume.Request) volume.Response {
 	localCapability := volume.Capability{
 		Scope: "local",
 	}
-	//logrus.WithField("method", "capabil").Debug("GOT HERE")
 	return volumeResp("", "", nil, localCapability, "")
 }
 
@@ -289,14 +279,12 @@ func (d *MinioDriver) createClient(options map[string]string) error {
 			return err
 		}
 	}
-	// logrus.WithField("method", "createClient").Debugf("THIS IS THE CLIENT IN CREATE CLIENT: %#v", d.c)
 	return nil
 }
 
 // createBucket is a helper function that creates a bucket on minio to be used
 // by the volume plugin to mount a minio bucket locally.
 func (d *MinioDriver) createBucket() error {
-	//logrus.WithField("method", "createBucket").Debug("GOT HERE")
 	bucket := createName(bucketPrefix)
 	exists, err := d.c.Client.BucketExists(bucket)
 	if err != nil {
@@ -313,7 +301,6 @@ func (d *MinioDriver) createBucket() error {
 }
 
 func (d *MinioDriver) createVolumeMount(volumeName string) error {
-	//	logrus.WithField("method", "createVolMo").Debug("GOT HERE")
 	if _, err := os.Stat(volumeName); os.IsNotExist(err) {
 		if err = os.MkdirAll(volumeName, 0755); err != nil {
 			return err

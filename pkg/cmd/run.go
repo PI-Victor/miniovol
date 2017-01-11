@@ -38,17 +38,17 @@ export MINIO_SECRET_KEY="mySecretKey"
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// if os.Getenv("MINIO_SERVER_URI") == "" && serverURI == "" ||
-		// 	os.Getenv("MINIO_ACCESS_KEY") == "" && accessKeyID == "" ||
-		// 	os.Getenv("MINIO_SECRET_KEY") == "" && secretAccessKey == "" {
-		//
-		// 	log.Printf("server, accesskeyID and secretKey are mandatory parameters.\n")
-		// 	cmd.Help()
-		//
-		// 	// Use os.Exit() once, only here so that we can print the help when there's
-		// 	// an error.
-		// 	//os.Exit(1)
-		// }
+		if os.Getenv("MINIO_SERVER_URI") == "" && serverURI == "" ||
+			os.Getenv("MINIO_ACCESS_KEY") == "" && accessKeyID == "" ||
+			os.Getenv("MINIO_SECRET_KEY") == "" && secretAccessKey == "" {
+
+			log.Printf("server, accesskeyID and secretKey are mandatory parameters.\n")
+			cmd.Help()
+
+			// Use os.Exit() once, only here so that we can print the help when there's
+			// an error.
+			os.Exit(1)
+		}
 		// ugly af.
 		if serverURI == "" {
 			serverURI = os.Getenv("MINIO_SERVER_URI")
