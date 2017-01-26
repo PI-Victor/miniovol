@@ -2,6 +2,7 @@
 _out
 .vagrant
 plugin.spec/rootfs/.dockerenv
+plugin.spec/rootfs/go
 plugin.spec/rootfs/anaconda-post.log
 plugin.spec/rootfs/bin
 plugin.spec/rootfs/dev
