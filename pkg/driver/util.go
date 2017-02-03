@@ -18,6 +18,12 @@ const (
 	location     = "us-east-1"
 )
 
+type minfsCfg struct {
+	Version   string `json:"version"`
+	AccessKey string `json:"accessKey"`
+	SecretKey string `json:"secretKey"`
+}
+
 // Error implements the error interface to eliminate message duplication when
 // the driver checks for a specific volume
 type Error struct {
@@ -32,12 +38,6 @@ func newErrVolNotFound(v string) error {
 	return Error{
 		volumeName: v,
 	}
-}
-
-type minfsCfg struct {
-	Version   string `json:"version"`
-	AccessKey string `json:"accessKey"`
-	SecretKey string `json:"secretKey"`
 }
 
 // ProvisionConfig updates the minfs config with the Minio instance details
@@ -96,13 +96,7 @@ func checkParam(param string, opts map[string]string) (string, error) {
 	return stringParam, nil
 }
 
-func volumeResp(mountPoint,
-	rName string,
-	volumes []*volume.Volume,
-	capabilities volume.Capability,
-	err string,
-) volume.Response {
-
+func volumeResp(mountPoint, rName string, volumes []*volume.Volume, capabilities volume.Capability, err string) volume.Response {
 	return volume.Response{
 		Err: err,
 		Volume: &volume.Volume{

@@ -38,16 +38,13 @@ type MinioDriver struct {
 }
 
 // NewMinioDriver creates a new driver for the docker plugin.
-func NewMinioDriver(client *client.MinioClient, secure bool) MinioDriver {
-	return MinioDriver{
+func NewMinioDriver(client *client.MinioClient, secure bool) *MinioDriver {
+	return &MinioDriver{
 		c: client,
 		m: &sync.RWMutex{},
 
-		server:    client.ServerURI,
-		accessKey: client.AccesKeyID,
-		secretKey: client.SecretAccessKey,
-		secure:    secure,
-		volumes:   make(map[string]*minioVolume),
+		secure:  secure,
+		volumes: make(map[string]*minioVolume),
 	}
 }
 
@@ -60,7 +57,7 @@ func newVolume(name, mountPoint, bucket string) *minioVolume {
 }
 
 // Create creates a new volume with the appropiate data.
-func (d MinioDriver) Create(r volume.Request) volume.Response {
+func (d *MinioDriver) Create(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
 
@@ -86,7 +83,7 @@ func (d MinioDriver) Create(r volume.Request) volume.Response {
 }
 
 // List lists all currently available volumes.
-func (d MinioDriver) List(r volume.Request) volume.Response {
+func (d *MinioDriver) List(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
 
@@ -102,7 +99,7 @@ func (d MinioDriver) List(r volume.Request) volume.Response {
 }
 
 // Get retrieves information about a current volume.
-func (d MinioDriver) Get(r volume.Request) volume.Response {
+func (d *MinioDriver) Get(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
 
@@ -115,7 +112,7 @@ func (d MinioDriver) Get(r volume.Request) volume.Response {
 }
 
 // Remove attempts to remove a volume if it's not currently in use.
-func (d MinioDriver) Remove(r volume.Request) volume.Response {
+func (d *MinioDriver) Remove(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Lock()
 	v, exists := d.volumes[r.Name]
@@ -139,7 +136,7 @@ func (d MinioDriver) Remove(r volume.Request) volume.Response {
 }
 
 // Path returns the mount path of the current volume.
-func (d MinioDriver) Path(r volume.Request) volume.Response {
+func (d *MinioDriver) Path(r volume.Request) volume.Response {
 	d.m.RLock()
 	defer d.m.RUnlock()
 	//logrus.WithField("method", "path").Debug("GOT HERE")
@@ -152,7 +149,7 @@ func (d MinioDriver) Path(r volume.Request) volume.Response {
 
 // Mount tries to mount a path inside the docker volume to a minio bucket
 // instance with a bucket defined.
-func (d MinioDriver) Mount(r volume.MountRequest) volume.Response {
+func (d *MinioDriver) Mount(r volume.MountRequest) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
 
@@ -178,7 +175,7 @@ func (d MinioDriver) Mount(r volume.MountRequest) volume.Response {
 }
 
 // Unmount will unmount a specified volume.
-func (d MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
+func (d *MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
 
@@ -199,7 +196,7 @@ func (d MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 }
 
 // Capabilities returns the capabilities needed for this plugin.
-func (d MinioDriver) Capabilities(r volume.Request) volume.Response {
+func (d *MinioDriver) Capabilities(r volume.Request) volume.Response {
 	localCapability := volume.Capability{
 		Scope: "local",
 	}
