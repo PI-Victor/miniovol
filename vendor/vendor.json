@@ -5,110 +5,82 @@
 		{
 			"checksumSHA1": "L9njXCkN30+qHaLayiiA2Q9jDlY=",
 			"path": "github.com/Microsoft/go-winio",
-			"revision": "24a3e3d3fc7451805e09d11e11e95d9a0a4f205e",
-			"revisionTime": "2016-11-21T22:01:10Z"
+			"revision": "fff283ad5116362ca252298cfc9b95828956d85d",
+			"revisionTime": "2017-02-01T00:43:30Z"
 		},
 		{
 			"checksumSHA1": "RBwpnMpfQt7Jo7YWrRph0Vwe+f0=",
 			"path": "github.com/coreos/go-systemd/activation",
-			"revision": "7c9533367ef925dc1078d75e5b7141e10da2c4e8",
-			"revisionTime": "2016-12-12T10:46:09Z"
+			"revision": "e97b35f834b17eaa82afe3d44715c34736bfa12b",
+			"revisionTime": "2017-02-01T10:47:36Z"
 		},
 		{
-			"checksumSHA1": "e8qgBHxXbij3RVspqrkeBzMZ564=",
-			"path": "github.com/coreos/go-systemd/util",
-			"revision": "7c9533367ef925dc1078d75e5b7141e10da2c4e8",
-			"revisionTime": "2016-12-12T10:46:09Z"
-		},
-		{
-			"checksumSHA1": "O8c/VKtW34XPJNNlyeb/im8vWSI=",
-			"path": "github.com/coreos/pkg/dlopen",
-			"revision": "447b7ec906e523386d9c53be15b55a8ae86ea944",
-			"revisionTime": "2016-10-26T22:29:26Z"
-		},
-		{
-			"checksumSHA1": "7tvyONViTN7mFX376eSfjvzcSGI=",
+			"checksumSHA1": "jUfDG3VQsA2UZHvvIXncgiddpYA=",
 			"path": "github.com/docker/go-connections/sockets",
-			"revision": "eb315e36415380e7c2fdee175262560ff42359da",
-			"revisionTime": "2017-01-01T21:01:28Z"
+			"revision": "9670439d95da2651d9dfc7acc5d2ed92d3f25ee6",
+			"revisionTime": "2017-01-30T18:05:21Z"
 		},
 		{
-			"checksumSHA1": "nX4CoPafpW4JkMKXEBXAbcRSl10=",
-			"path": "github.com/docker/go-plugins-helpers",
-			"revision": "65a562254f786ada2d545466185c59e235b7699e",
-			"revisionTime": "2017-01-02T14:46:06Z"
+			"path": "github.com/docker/go-plugins-gelpers/volume",
+			"revision": ""
 		},
 		{
-			"checksumSHA1": "G7NHweddpD10GEcpqmdB/Bq6FZI=",
+			"checksumSHA1": "9/gpnQVuH/eszYpzCGeG1AtOdMM=",
 			"path": "github.com/docker/go-plugins-helpers/sdk",
-			"revision": "65a562254f786ada2d545466185c59e235b7699e",
-			"revisionTime": "2017-01-02T14:46:06Z"
+			"revision": "8af45ff6ad5b7608853de51133c33e6638b02134",
+			"revisionTime": "2017-01-30T18:14:55Z"
 		},
 		{
 			"checksumSHA1": "bELvyBvmY5t2P/dCuCLxwTb1I+Q=",
 			"path": "github.com/docker/go-plugins-helpers/volume",
-			"revision": "65a562254f786ada2d545466185c59e235b7699e",
-			"revisionTime": "2017-01-02T14:46:06Z"
+			"revision": "8af45ff6ad5b7608853de51133c33e6638b02134",
+			"revisionTime": "2017-01-30T18:14:55Z"
 		},
 		{
-			"checksumSHA1": "40vJyUB4ezQSn/NSadsKEOrudMc=",
-			"path": "github.com/inconshreveable/mousetrap",
-			"revision": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75",
-			"revisionTime": "2014-10-17T20:07:13Z"
+			"path": "github.com/docker/go-plugins/volume",
+			"revision": ""
 		},
 		{
-			"checksumSHA1": "WC8XdAWAizylFit1rntrjFYyLpI=",
+			"checksumSHA1": "P45vuk7tIHWXM49IcPHB5TDDYj8=",
 			"path": "github.com/minio/minio-go",
-			"revision": "52cc94e879db78c2e2c6e160869df943137ec4cd",
-			"revisionTime": "2017-01-01T22:57:21Z"
+			"revision": "12deaf0984453539baf861139f35f569f8f39757",
+			"revisionTime": "2017-02-03T04:18:30Z"
 		},
 		{
 			"checksumSHA1": "neH34/65OXeKHM/MlV8MbhcdFBc=",
 			"path": "github.com/minio/minio-go/pkg/policy",
-			"revision": "52cc94e879db78c2e2c6e160869df943137ec4cd",
-			"revisionTime": "2017-01-01T22:57:21Z"
+			"revision": "12deaf0984453539baf861139f35f569f8f39757",
+			"revisionTime": "2017-02-03T04:18:30Z"
 		},
 		{
 			"checksumSHA1": "m/6/na9lVtamkfmIdIOi5pdccgw=",
 			"path": "github.com/minio/minio-go/pkg/s3signer",
-			"revision": "52cc94e879db78c2e2c6e160869df943137ec4cd",
-			"revisionTime": "2017-01-01T22:57:21Z"
+			"revision": "12deaf0984453539baf861139f35f569f8f39757",
+			"revisionTime": "2017-02-03T04:18:30Z"
 		},
 		{
-			"checksumSHA1": "E8pB1tB4eyXgqO7C8vtC2FTMtng=",
+			"checksumSHA1": "gRnCFKb4x83GBLVUZXoOjujd+U0=",
 			"path": "github.com/minio/minio-go/pkg/s3utils",
-			"revision": "52cc94e879db78c2e2c6e160869df943137ec4cd",
-			"revisionTime": "2017-01-01T22:57:21Z"
+			"revision": "12deaf0984453539baf861139f35f569f8f39757",
+			"revisionTime": "2017-02-03T04:18:30Z"
 		},
 		{
-			"checksumSHA1": "A8QOw1aWwc+RtjGozY0XeS5varo=",
+			"checksumSHA1": "maUy+dbN6VfTTnfErrAW2lLit1w=",
 			"path": "github.com/minio/minio-go/pkg/set",
-			"revision": "52cc94e879db78c2e2c6e160869df943137ec4cd",
-			"revisionTime": "2017-01-01T22:57:21Z"
-		},
-		{
-			"checksumSHA1": "2bLk/+qSRrzctGuDCiCPygXbUQQ=",
-			"path": "github.com/spf13/cobra",
-			"revision": "1dd5ff2e11b6dca62fdcb275eb804b94607d8b06",
-			"revisionTime": "2016-09-04T11:42:13Z"
-		},
-		{
-			"checksumSHA1": "AxfxmmBpbjQoaQKXbERcEw9pv+U=",
-			"path": "github.com/spf13/pflag",
-			"revision": "25f8b5b07aece3207895bf19f7ab517eb3b22a40",
-			"revisionTime": "2016-12-14T04:49:49Z"
+			"revision": "12deaf0984453539baf861139f35f569f8f39757",
+			"revisionTime": "2017-02-03T04:18:30Z"
 		},
 		{
 			"checksumSHA1": "LvdVRE0FqdR68SvVpRkHs1rxhcA=",
 			"path": "golang.org/x/net/proxy",
-			"revision": "8fd7f25955530b92e73e9e1932a41b522b22ccd9",
-			"revisionTime": "2016-12-29T20:13:24Z"
+			"revision": "007e530097ad7f954752df63046b4036f98ba6a6",
+			"revisionTime": "2017-02-01T22:13:12Z"
 		},
 		{
 			"checksumSHA1": "kQB2wRB3twjUp615F6zEwGHjNe0=",
 			"path": "golang.org/x/sys/windows",
-			"revision": "d75a52659825e75fff6158388dddc6a5b04f9ba5",
-			"revisionTime": "2016-12-14T18:38:57Z"
+			"revision": "7a6e5648d140666db5d920909e082ca00a87ba2c",
+			"revisionTime": "2017-02-01T04:15:14Z"
 		}
 	],
 	"rootPath": "github.com/cloudflavor/miniovol"
