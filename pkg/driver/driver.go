@@ -2,13 +2,13 @@ package driver
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
 
 	"github.com/docker/go-plugins-helpers/volume"
+	"github.com/golang/glog"
 
 	"github.com/cloudflavor/miniovol/pkg/client"
 )
@@ -60,7 +60,7 @@ func newVolume(name, mountPoint, bucket string) *minioVolume {
 func (d *MinioDriver) Create(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
-
+	glog.V(1).Infof("Create request is: %#v", r)
 	if err := d.createClient(r.Options); err != nil {
 		return volumeResp("",
 			"",
@@ -139,7 +139,6 @@ func (d *MinioDriver) Remove(r volume.Request) volume.Response {
 func (d *MinioDriver) Path(r volume.Request) volume.Response {
 	d.m.RLock()
 	defer d.m.RUnlock()
-	//logrus.WithField("method", "path").Debug("GOT HERE")
 	v, exists := d.volumes[r.Name]
 	if !exists {
 		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
@@ -152,6 +151,7 @@ func (d *MinioDriver) Path(r volume.Request) volume.Response {
 func (d *MinioDriver) Mount(r volume.MountRequest) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
+	glog.V(1).Infof("Mount request is: %#v", r)
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
@@ -164,7 +164,7 @@ func (d *MinioDriver) Mount(r volume.MountRequest) volume.Response {
 	}
 
 	if err := d.mountVolume(v); err != nil {
-		log.Print(err)
+		glog.Warningf("mounting %s volume failed: %s", v, err)
 		return volumeResp("", "", nil, capability, err.Error())
 	}
 	// if the mount was successful, then increment the number of connections we
@@ -178,6 +178,7 @@ func (d *MinioDriver) Mount(r volume.MountRequest) volume.Response {
 func (d *MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
+	glog.V(1).Infof("Unmount request is: %#v", r)
 
 	v, exists := d.volumes[r.Name]
 	if !exists {
@@ -186,6 +187,7 @@ func (d *MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 
 	if v.connections <= 1 {
 		if err := d.unmountVolume(v); err != nil {
+			glog.Warningf("Unmounting %s volume failed with: %s", v, err)
 			return volumeResp("", "", nil, capability, err.Error())
 		}
 		v.connections = 0
@@ -200,6 +202,7 @@ func (d *MinioDriver) Capabilities(r volume.Request) volume.Response {
 	localCapability := volume.Capability{
 		Scope: "local",
 	}
+	glog.V(1).Infof("Capabilities request: %#v", r)
 	return volumeResp("", "", nil, localCapability, "")
 }
 
@@ -216,14 +219,15 @@ func (d *MinioDriver) mountVolume(volume *minioVolume) error {
 	}
 	out, err := exec.Command("cat", "/etc/minfs/config.json").Output()
 	if err != nil {
-		log.Print(err)
+		glog.Warningf("An error occured while trying to read config file: %s", err)
 	}
-	log.Printf("%s", out)
+	glog.V(1).Infof("%s", out)
 	out1, err1 := exec.Command("sh", "-c", cmd).Output()
 	if err != nil {
-		log.Print(err1)
+		glog.Warningf("Error while executing mount command (%s): %s", cmd, err1)
+		glog.V(1).Infof("Dump output of command: %#v", out1)
+		return err
 	}
-	log.Printf("%s", out1)
 	return nil
 }
 
@@ -240,32 +244,36 @@ func (d *MinioDriver) createClient(options map[string]string) error {
 
 	server, err := checkParam("server", options)
 	if err != nil {
+		glog.Warning("missing server option")
 		return err
 	}
 	d.server = server
 
 	accessKey, err := checkParam("accessKey", options)
 	if err != nil {
+		glog.Warning("missing accessKey option")
 		return err
 	}
 	d.accessKey = accessKey
-
 	secretKey, err := checkParam("secretKey", options)
 	if err != nil {
+		glog.Warning("missing secretKey option")
 		return err
 	}
 	d.secretKey = secretKey
-
 	// TODO: remember to fix this, since the user could pass false and it would
 	// become true.
 	_, err = checkParam("secure", options)
 	if err == nil {
+		glog.Warning("setting secure key true")
 		secure = true
 	}
 
 	if d.c == nil {
 		d.c, err = client.NewMinioClient(server, accessKey, secretKey, "", secure)
 		if err != nil {
+			glog.Warningf("Failed to create new client", err)
+			glog.V(1).Infof("server: %s - accesKey: %s - secretKey: %s - secure: %s", server, accessKey, secretKey, secure)
 			return err
 		}
 	}
@@ -288,7 +296,10 @@ func (d *MinioDriver) createBucket() error {
 		return err
 	}
 	if !exists {
-		if err := d.c.Client.MakeBucket(bucket, location); err != nil {
+		// TODO: in the future, let the user set "location" so that this works with
+		// aws s3.
+		if err := d.c.Client.MakeBucket(bucket, ""); err != nil {
+			glog.Warningf("Failed to create bucket %s at ", bucket)
 			return err
 		}
 	}
@@ -300,6 +311,7 @@ func (d *MinioDriver) createBucket() error {
 func (d *MinioDriver) createVolumeMount(volumeName string) error {
 	if _, err := os.Stat(volumeName); os.IsNotExist(err) {
 		if err = os.MkdirAll(volumeName, 0755); err != nil {
+			glog.Warningf("Failed to create mount path: %s", err)
 			return err
 		}
 	} else if err != nil {
