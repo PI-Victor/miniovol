@@ -30,5 +30,6 @@ func NewMinioClient(serverURI, accessKeyID, secretAccessKey, bucket string, secu
 		ServerURI:       serverURI,
 		AccesKeyID:      accessKeyID,
 		SecretAccessKey: secretAccessKey,
+		BucketName:      bucket,
 	}, nil
 }
