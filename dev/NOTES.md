@@ -4,7 +4,9 @@ mount -t minfs http://192.168.0.115:9000/docker-volumes /mnt
 
 see how to mount /dev/fuse in a privileged container.
 https://github.com/docker/docker/issues/9448
-```docker run -ti --cap-add SYS_ADMIN --device /dev/fuse```
+```
+docker run -ti --cap-add SYS_ADMIN --device /dev/fuse
+```
 
 how to create a new volume with this driver.
 docker volume create -d cloudflavor/miniovol:latest -o server="192.168.0.115:9000" -o accessKey=OKWUYY6OHNKMJB67WPU0 -o secretKey=MWShkNCAlhmeDXdL6M3qb8N8lhAjM2ih83+pgjzD miniovol
