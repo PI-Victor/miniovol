@@ -60,6 +60,7 @@ func newVolume(name, mountPoint, bucket string) *minioVolume {
 func (d *MinioDriver) Create(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
+
 	glog.V(1).Infof("Create request is: %#v", r)
 	if err := d.createClient(r.Options); err != nil {
 		return volumeResp("",
@@ -115,6 +116,7 @@ func (d *MinioDriver) Get(r volume.Request) volume.Response {
 func (d *MinioDriver) Remove(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Lock()
+
 	v, exists := d.volumes[r.Name]
 	if !exists {
 		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
@@ -139,6 +141,7 @@ func (d *MinioDriver) Remove(r volume.Request) volume.Response {
 func (d *MinioDriver) Path(r volume.Request) volume.Response {
 	d.m.RLock()
 	defer d.m.RUnlock()
+
 	v, exists := d.volumes[r.Name]
 	if !exists {
 		return volumeResp("", "", nil, capability, newErrVolNotFound(r.Name).Error())
@@ -151,6 +154,7 @@ func (d *MinioDriver) Path(r volume.Request) volume.Response {
 func (d *MinioDriver) Mount(r volume.MountRequest) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
+
 	glog.V(1).Infof("Mount request is: %#v", r)
 
 	v, exists := d.volumes[r.Name]
@@ -178,6 +182,7 @@ func (d *MinioDriver) Mount(r volume.MountRequest) volume.Response {
 func (d *MinioDriver) Unmount(r volume.UnmountRequest) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
+
 	glog.V(1).Infof("Unmount request is: %#v", r)
 
 	v, exists := d.volumes[r.Name]
