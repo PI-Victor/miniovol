@@ -1,6 +1,6 @@
 Miniovol
 ---
-**The original Docker volume plugin, for minio, can be found in the [minfs repo](https://github.com/minio/minfs#docker-plugin)  
+**The original Docker volume plugin, for minio, can be found in the [minfs repo](https://github.com/minio/minfs#docker-plugin).    
 This repo can serve as an extensive example for how to write docker volume plugins for Docker 1.13.    
 If you're looking for running things in production, then always choose the official supported software rather than 3rd party.**  
 
