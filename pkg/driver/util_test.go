@@ -64,3 +64,7 @@ func TestVolumeResp(t *testing.T) {
 		t.Errorf("Expected %#v to match %#v", volumeResponse, fakeVolumesResponse)
 	}
 }
+
+func TestNewMinioDriver(t *testing.T) {
+	//client :=
+}

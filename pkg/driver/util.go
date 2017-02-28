@@ -24,18 +24,18 @@ type minfsCfg struct {
 	SecretKey string `json:"secretKey"`
 }
 
-// Error implements the error interface to eliminate message duplication when
+// VolumeError implements the error interface to eliminate message duplication when
 // the driver checks for a specific volume
-type Error struct {
+type VolumeError struct {
 	volumeName string
 }
 
-func (e Error) Error() string {
+func (e VolumeError) Error() string {
 	return fmt.Sprintf("volume %s not found", e.volumeName)
 }
 
 func newErrVolNotFound(v string) error {
-	return Error{
+	return VolumeError{
 		volumeName: v,
 	}
 }
