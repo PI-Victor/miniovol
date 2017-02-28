@@ -16,6 +16,7 @@ clean:
 	@echo 'Removing ${PLUGIN_NAME}:rootfs image if it exists'
 	@docker rmi -f ${PLUGIN_NAME}:rootfs || true
 	@docker rmi -f ${PLUGIN_NAME}:dev || true
+	@docker rm -vf tmp || true
 
 # creates the rootfs needed to distribute the plugin.
 rootfs:
