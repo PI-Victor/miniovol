@@ -24,8 +24,24 @@ type minfsCfg struct {
 	SecretKey string `json:"secretKey"`
 }
 
-// VolumeError implements the error interface to eliminate message duplication when
-// the driver checks for a specific volume
+// EnvVarError implements the error interface and uses it to return a generic
+// validation error for environment variables that are mandatory.
+type EnvVarError struct {
+	envVar string
+}
+
+func (e EnvVarError) Error() string {
+	return fmt.Sprintf("environment variable %s cannot be empty", e.envVar)
+}
+
+func newErrEmptyEnvVar(v string) error {
+	return EnvVarError{
+		envVar: v,
+	}
+}
+
+// VolumeError implements the error interface to eliminate message duplication
+// when the driver checks for a specific volume
 type VolumeError struct {
 	volumeName string
 }

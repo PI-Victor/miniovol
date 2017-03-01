@@ -328,11 +328,8 @@ func (d *MinioDriver) createVolumeMount(volumeName string) error {
 	return nil
 }
 
-func (d *MinioDriver) createConn() error {
-	serverURI, accessKeyID, secretAccessKey, bucket, secure, err := getEnvDetails()
-	if err != nil {
-		log.Fatalf("An error occured while fetching environment settings: %s", err)
-	}
+// NOTE: Also deprecated???
+func (d *MinioDriver) createConn(serverURI, accessKeyID, secretAccessKey, bucket string, secure bool) error {
 	c, err := client.NewMinioClient(serverURI, accessKeyID, secretAccessKey, bucket, secure)
 
 	if err != nil {
@@ -342,23 +339,7 @@ func (d *MinioDriver) createConn() error {
 	return nil
 }
 
-// EnvVarError implements the error interface and uses it to return a generic
-// validation error for environment variables that are mandatory.
-type EnvVarError struct {
-	envVar string
-}
-
-func (e EnvVarError) Error() string {
-	return fmt.Sprintf("environment variable %s cannot be empty", e.envVar)
-}
-
-func newErrEmptyEnvVar(v string) error {
-	return EnvVarError{
-		envVar: v,
-	}
-}
-
-// NOTE: see if makes sense to run this outside of the docker plugin ecosystem.
+// NOTE: THIS MIGHT BE ALREADY DEPRECATED!!!!!!!!!!!!!!!
 // getEnvDetails provides login details for the client when it's run in
 // standalone mode.
 func getEnvDetails() (serverURI, accessKeyID, secretAccessKey, bucket string, secure bool, err error) {
@@ -366,6 +347,7 @@ func getEnvDetails() (serverURI, accessKeyID, secretAccessKey, bucket string, se
 	if err != nil {
 		glog.V(0).Infof("MINIO_SECURE environment variable can't be obtained, setting to false.")
 		secure = false
+		// errr... isn't this scoped?
 		err = nil
 	}
 	serverURI = os.Getenv("MINIO_SERVER")
