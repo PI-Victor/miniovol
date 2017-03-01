@@ -81,7 +81,7 @@ func (d *MinioDriver) Create(r volume.Request) volume.Response {
 
 	volName := createName(volumePrefix)
 	d.volumes[r.Name] = newVolume(volName, volMount, d.c.BucketName)
-
+	glog.V(1).Infof("this is the d.volumes: %#v", d.volumes)
 	return volumeResp("", "", nil, capability, "")
 }
 
@@ -165,18 +165,19 @@ func (d *MinioDriver) Mount(r volume.MountRequest) volume.Response {
 	}
 
 	if v.connections > 0 {
+		glog.V(1).Infof("i returned early from the mounting of the volume, existing connection: %#v", v.connections)
 		v.connections++
 		return volumeResp(v.mountpoint, r.Name, nil, capability, "")
 	}
 
 	if err := d.mountVolume(v); err != nil {
-		glog.Warningf("mounting %s volume failed: %s", v, err)
+		glog.Warningf("mounting %#v volume failed: %s", v, err.Error())
 		return volumeResp("", "", nil, capability, err.Error())
 	}
+
 	// if the mount was successful, then increment the number of connections we
 	// have to the mount.
 	v.connections++
-
 	return volumeResp(v.mountpoint, r.Name, nil, capability, "")
 }
 
@@ -221,20 +222,18 @@ func (d *MinioDriver) mountVolume(volume *minioVolume) error {
 
 	//NOTE: make this adjustable in the future for https if secure is passed.
 	cmd := fmt.Sprintf("mount -t minfs http://%s %s", minioPath, volume.mountpoint)
+	glog.V(0).Infof("THIS IS THE CMD: %#v", cmd)
 	if err := provisionConfig(d); err != nil {
 		return err
 	}
-	out, err := exec.Command("cat", "/etc/minfs/config.json").Output()
+
+	out, err := exec.Command("sh", "-c", cmd).Output()
 	if err != nil {
-		glog.Warningf("An error occured while trying to read config file: %s", err)
-	}
-	glog.V(1).Infof("%s", out)
-	out1, err1 := exec.Command("sh", "-c", cmd).Output()
-	if err != nil {
-		glog.Warningf("Error while executing mount command (%s): %s", cmd, err1)
-		glog.V(1).Infof("Dump output of command: %#v", out1)
+		glog.Warningf("Error while executing mount command (%s): %s", cmd, err)
+		glog.V(1).Infof("Dump output of command: %#v", out)
 		return err
 	}
+	glog.V(0).Infof("THIS IS THE ERRROR IN MOUNTVOL:%#v AND THIS IS THE DUMP:%#v", err, out)
 	return nil
 }
 

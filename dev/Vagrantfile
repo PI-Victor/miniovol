@@ -1,0 +1,41 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+  config.vm.hostname = "devel"
+
+  config.vm.synced_folder "../", "/data", type: "nfs"
+
+  config.vm.provision "file", source: "./assets/docker.service", destination: "/home/vagrant/docker.service"
+  config.vm.provision "file", source: "./assets/docker.socket", destination: "/home/vagrant/docker.socket"
+  config.vm.provision "file", source: "./assets/docker", destination: "/home/vagrant/docker"
+
+
+  config.vm.provision :shell, inline: <<-SHELL
+    yum install -y wget fuse https://github.com/minio/minfs/releases/download/RELEASE.2016-10-04T19-44-43Z/minfs-0.0.20161004194443-1.x86_64.rpm
+    groupadd docker
+    mv /home/vagrant/docker.socket /usr/lib/systemd/system/
+    mv /home/vagrant/docker.service /usr/lib/systemd/system/
+    mkdir -p /etc/sysconfig/docker.d/
+    mv /home/vagrant/docker /etc/sysconfig/docker.d/
+    ln -s /data/_out/bin/miniovol /usr/bin/
+    usermod -a -G docker vagrant
+    wget https://dl.minio.io/server/minio/release/linux-amd64/minio -P /home/vagrant
+    chmod +x /home/vagrant/minio
+    wget https://get.docker.com/builds/Linux/x86_64/docker-1.13.1.tgz -P /usr/local/
+    mkdir -p /usr/local/docker
+    tar -xvf /usr/local/docker-1.13.1.tgz -C /usr/local/
+    ln -s /usr/local/docker/docker /usr/bin/
+    ln -s /usr/local/docker/dockerd /usr/bin/
+    ln -s /usr/local/docker/docker-runc /usr/bin/
+    ln -s /usr/local/docker/docker-proxy /usr/bin/
+    ln -s /usr/local/docker/docker-init /usr/bin/
+    ln -s /usr/local/docker/docker-containerd-shim /usr/bin/
+    ln -s /usr/local/docker/docker-containerd-ctr /usr/bin/
+    ln -s /usr/local/docker/docker-containerd /usr/bin/
+
+    systemctl enable docker
+    service docker start
+  SHELL
+end
