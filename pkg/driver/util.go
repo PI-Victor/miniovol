@@ -2,11 +2,11 @@ package driver
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 
 	"github.com/docker/go-plugins-helpers/volume"
+	"github.com/golang/glog"
 )
 
 const (
