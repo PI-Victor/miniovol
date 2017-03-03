@@ -64,20 +64,20 @@ func newErrVolNotFound(v string) error {
 func provisionConfig(m *MinioDriver) error {
 	if _, err := os.Stat(cfgDir); os.IsNotExist(err) {
 		if err = os.MkdirAll(cfgDir, 0755); err != nil {
-			log.Printf("%#v", err)
+			glog.V(1).Infof("Error while creating MinFS config dir: %s", err)
 			return err
 		}
 	} else if err != nil {
-		log.Printf("%#v", err)
+		glog.V(1).Infof("Error while writing MinFS config: %s", err)
 		return err
 	}
 
-	//cfg := newCfg(m.c.AccesKeyID, m.c.SecretAccessKey, vers)
+	details := fmt.Sprintf(`{"version":"%s","accessKey":"%s","secretKey":"%s"}`,
+		vers,
+		m.accessKey,
+		m.secretKey,
+	)
 
-	details := fmt.Sprintf(`
-{"version":"%s","accessKey":"%s","secretKey":"%s"}
-`, vers, m.accessKey, m.secretKey)
-	log.Printf("%#v", details)
 	fh, err := os.Create(cfgFile)
 	if err != nil {
 		return err
