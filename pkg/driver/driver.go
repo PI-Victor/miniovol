@@ -2,11 +2,9 @@ package driver
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"sync"
 
 	"github.com/docker/go-plugins-helpers/volume"
@@ -325,48 +323,4 @@ func (d *MinioDriver) createVolumeMount(volumeName string) error {
 	}
 
 	return nil
-}
-
-// NOTE: Also deprecated???
-func (d *MinioDriver) createConn(serverURI, accessKeyID, secretAccessKey, bucket string, secure bool) error {
-	c, err := client.NewMinioClient(serverURI, accessKeyID, secretAccessKey, bucket, secure)
-
-	if err != nil {
-		log.Fatalf("An error occured while creating a new Minio client: %s", err)
-	}
-	d.c = c
-	return nil
-}
-
-// NOTE: THIS MIGHT BE ALREADY DEPRECATED!!!!!!!!!!!!!!!
-// getEnvDetails provides login details for the client when it's run in
-// standalone mode.
-func getEnvDetails() (serverURI, accessKeyID, secretAccessKey, bucket string, secure bool, err error) {
-	secure, err = strconv.ParseBool(os.Getenv("MINIO_SECURE"))
-	if err != nil {
-		glog.V(0).Infof("MINIO_SECURE environment variable can't be obtained, setting to false.")
-		secure = false
-		// errr... isn't this scoped?
-		err = nil
-	}
-	serverURI = os.Getenv("MINIO_SERVER")
-	if serverURI == "" {
-		err = newErrEmptyEnvVar("MINIO_SERVER")
-		return
-	}
-	accessKeyID = os.Getenv("MINIO_ACCESSKEY")
-	if accessKeyID == "" {
-		err = newErrEmptyEnvVar("MINIO_ACCESSKEY")
-		return
-	}
-	secretAccessKey = os.Getenv("MINIO_SECRETKEY")
-	if secretAccessKey == "" {
-		err = newErrEmptyEnvVar("MINIO_SECRETKEY")
-		return
-	}
-	// bucket can be empty, since we're gonna generate a new bucket name if there
-	// wasn't one specified.
-	bucket = os.Getenv("MINIO_BUCKET")
-
-	return
 }
