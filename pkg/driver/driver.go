@@ -163,7 +163,6 @@ func (d *MinioDriver) Mount(r volume.MountRequest) volume.Response {
 	}
 
 	if v.connections > 0 {
-		glog.V(1).Infof("i returned early from the mounting of the volume, existing connection: %#v", v.connections)
 		v.connections++
 		return volumeResp(v.mountpoint, r.Name, nil, capability, "")
 	}
@@ -220,7 +219,6 @@ func (d *MinioDriver) mountVolume(volume *minioVolume) error {
 
 	//NOTE: make this adjustable in the future for https if secure is passed.
 	cmd := fmt.Sprintf("mount -t minfs http://%s %s", minioPath, volume.mountpoint)
-	glog.V(0).Infof("THIS IS THE CMD: %#v", cmd)
 	if err := provisionConfig(d); err != nil {
 		return err
 	}
@@ -231,7 +229,6 @@ func (d *MinioDriver) mountVolume(volume *minioVolume) error {
 		glog.V(1).Infof("Dump output of command: %#v", out)
 		return err
 	}
-	glog.V(0).Infof("THIS IS THE ERRROR IN MOUNTVOL:%#v AND THIS IS THE DUMP:%#v", err, out)
 	return nil
 }
 
