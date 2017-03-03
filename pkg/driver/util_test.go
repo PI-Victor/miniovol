@@ -20,9 +20,9 @@ func TestError(t *testing.T) {
 
 func TestNewErrEmptyEnvVar(t *testing.T) {
 	expectedErr := "environment variable test cannot be empty"
-	err := newErrEmptyEnvVar(test)
-	if err != expectedString {
-		t.Errorf("Expected err to be %s, got %s", expectedErr, err)
+	err := newErrEmptyEnvVar("test")
+	if err.Error() != expectedErr {
+		t.Errorf("Expected error to be \"%s\", got \"%s\"", expectedErr, err)
 	}
 }
 
