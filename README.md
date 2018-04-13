@@ -39,5 +39,5 @@ create:
 
 devel:
 * creates a docker image with everything preinstalled.  
-* launches a privileged dev container that you can then attach to to debug the
+* launches a privileged dev container that you can then attach to debug the
 latest plugin version.  
